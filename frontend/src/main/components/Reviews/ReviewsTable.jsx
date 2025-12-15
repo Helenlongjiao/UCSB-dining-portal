@@ -7,7 +7,10 @@ import {
   onDeleteSuccess,
   cellToAxiosParamsModerate,
   onModerateSuccess,
+  cellToAxiosParamsVote,
+  onVoteSuccess,
 } from "main/utils/Reviews";
+import { Button } from "react-bootstrap";
 
 export default function ReviewsTable({
   reviews,
@@ -54,6 +57,21 @@ export default function ReviewsTable({
   const rejectCallback = async (cell) => {
     rejectMutation.mutate(cell);
   };
+
+  const voteMutation = useBackendMutation(
+    cellToAxiosParamsVote,
+    { onSuccess: onVoteSuccess },
+    // Re-fetch these endpoints to update the vote count
+    [
+      "/api/reviews/all",
+      "/api/reviews/userReviews",
+      `/api/reviews/approved/forItem/${reviews?.[0]?.item?.id || 0}`, // Attempt to refresh item reviews if applicable
+    ],
+  );
+
+  const voteCallback = async (cell) => {
+    voteMutation.mutate(cell);
+  };
   // Stryker restore all
 
   const columns = [
@@ -71,8 +89,36 @@ export default function ReviewsTable({
       Cell: ({ value }) => "⭐".repeat(value),
     },
     {
+      Header: "Votes",
+      accessor: "voteCount",
+      Cell: ({ cell }) => (
+        <Button
+          variant="outline-primary"
+          onClick={() => voteCallback(cell)}
+          size="sm"
+          data-testid={`ReviewsTable-cell-row-${cell.row.index}-col-Vote-button`}
+        >
+          👍 {cell.value || 0}
+        </Button>
+      ),
+    },
+    {
       Header: "Comments",
       accessor: "reviewerComments",
+    },
+    {
+      Header: "Image",
+      accessor: "imageBase64",
+      Cell: ({ value }) =>
+        value ? (
+          <img
+            src={value}
+            alt="Review"
+            style={{ width: "100px", height: "auto" }}
+          />
+        ) : (
+          "None"
+        ),
     },
     {
       Header: "Date Served",

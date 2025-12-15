@@ -14,10 +14,23 @@ export default function ReviewForm({ initialItemName, submitAction }) {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        dayPeriod: undefined, // Remove AM/PM
       })
       .replace(" ", "T"); // Default to now, without seconds (specifying locale prompts autofill)
     // Stryker enable ObjectLiteral
   });
+  const [image, setImage] = React.useState("");
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -25,6 +38,7 @@ export default function ReviewForm({ initialItemName, submitAction }) {
       reviewerComments: comments,
       itemsStars: stars,
       dateItemServed: dateServed,
+      imageBase64: image,
     });
   };
 
@@ -76,6 +90,21 @@ export default function ReviewForm({ initialItemName, submitAction }) {
           value={dateServed}
           onChange={(e) => setDateServed(e.target.value)}
         />
+      </Form.Group>
+
+      <Form.Group className="mb-3">
+        <Form.Label htmlFor="review-image">Upload Image (Optional)</Form.Label>
+        <Form.Control
+          id="review-image"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+        {image && (
+          <div className="mt-2">
+            <img src={image} alt="Review preview" style={{ maxWidth: "200px" }} />
+          </div>
+        )}
       </Form.Group>
 
       <Button type="submit">Submit Review</Button>

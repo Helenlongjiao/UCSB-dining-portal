@@ -30,3 +30,30 @@ export function cellToAxiosParamsModerate(cell, status) {
 export function onModerateSuccess() {
   console.log("Moderation success");
 }
+
+export function cellToAxiosParamsVote(cell) {
+  return {
+    url: `/api/reviews/${cell.row.original.id}/vote`,
+    method: "POST",
+  };
+}
+
+export function onVoteSuccess(message) {
+  console.log(message);
+  toast(message);
+}
+
+export function cellToAxiosParamsFavorite(cell) {
+  return {
+    url: "/api/favorites/menuitem",
+    method: "POST",
+    params: {
+      name: cell.row.original.name,
+    },
+  };
+}
+
+export function onFavoriteSuccess(message) {
+  console.log(message);
+  toast(message);
+}

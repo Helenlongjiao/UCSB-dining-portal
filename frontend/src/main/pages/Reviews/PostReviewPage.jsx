@@ -34,6 +34,7 @@ export default function PostReviewPage() {
           reviewerComments: formData.reviewerComments,
           itemsStars: formData.itemsStars,
           dateItemServed: formData.dateItemServed,
+          imageBase64: formData.imageBase64,
         },
       });
       // Stryker disable next-line all : itemName will be defined

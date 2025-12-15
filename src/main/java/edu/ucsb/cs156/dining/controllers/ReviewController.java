@@ -3,12 +3,14 @@ package edu.ucsb.cs156.dining.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import edu.ucsb.cs156.dining.entities.MenuItem;
 import edu.ucsb.cs156.dining.entities.Review;
+import edu.ucsb.cs156.dining.entities.ReviewVote;
 import edu.ucsb.cs156.dining.entities.User;
 import edu.ucsb.cs156.dining.errors.EntityNotFoundException;
 import edu.ucsb.cs156.dining.models.CurrentUser;
 import edu.ucsb.cs156.dining.models.EditedReview;
 import edu.ucsb.cs156.dining.repositories.MenuItemRepository;
 import edu.ucsb.cs156.dining.repositories.ReviewRepository;
+import edu.ucsb.cs156.dining.repositories.ReviewVoteRepository;
 import edu.ucsb.cs156.dining.statuses.ModerationStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +19,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -52,6 +55,29 @@ public class ReviewController extends ApiController {
   @Autowired ReviewRepository reviewRepository;
 
   @Autowired MenuItemRepository menuItemRepository;
+
+  @Autowired ReviewVoteRepository reviewVoteRepository;
+
+  @Operation(summary = "Toggle vote for a review")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @PostMapping("/{id}/vote")
+  public Object toggleVote(@Parameter(name = "id") @PathVariable Long id) {
+    Review review =
+        reviewRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(Review.class, id));
+    User user = getCurrentUser().getUser();
+
+    Optional<ReviewVote> existingVote = reviewVoteRepository.findByUserAndReview(user, review);
+    if (existingVote.isPresent()) {
+      reviewVoteRepository.delete(existingVote.get());
+      return genericMessage("Vote removed");
+    } else {
+      ReviewVote vote = ReviewVote.builder().user(user).review(review).build();
+      reviewVoteRepository.save(vote);
+      return genericMessage("Vote added");
+    }
+  }
 
   /**
    * This method returns a list of all Reviews.
@@ -96,6 +122,7 @@ public class ReviewController extends ApiController {
    * @param dateItemServed localDataTime All others params must not be parameters and instead
    *     derived from data sources that are dynamic (Date), or set to be null or some other
    *     signifier
+   * @param imageBase64 the base64 encoded image string
    */
   @Operation(summary = "Create a new review")
   @PreAuthorize("hasRole('ROLE_USER')")
@@ -112,7 +139,10 @@ public class ReviewController extends ApiController {
                   "date (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)")
           @RequestParam("dateItemServed")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          LocalDateTime dateItemServed) // For
+          LocalDateTime dateItemServed,
+      @Parameter(description = "Base64 encoded image string, can be blank")
+          @RequestParam(required = false)
+          String imageBase64)
       throws JsonProcessingException {
     LocalDateTime now = LocalDateTime.now();
     Review review = new Review();
@@ -121,6 +151,10 @@ public class ReviewController extends ApiController {
     // Ensures content of truly empty and sets to null if so
     if (reviewerComments != null && !reviewerComments.trim().isEmpty()) {
       review.setReviewerComments(reviewerComments);
+    }
+
+    if (imageBase64 != null && !imageBase64.trim().isEmpty()) {
+      review.setImageBase64(imageBase64);
     }
 
     // Ensure user inputs rating 1-5

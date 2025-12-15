@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -24,8 +25,14 @@ public class Review {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
 
+  @Formula("(SELECT count(*) FROM review_votes rv WHERE rv.review_id = id)")
+  private long voteCount;
+
   @Column(columnDefinition = "VARCHAR(255) DEFAULT NULL")
   private String reviewerComments;
+
+  @Column(columnDefinition = "TEXT DEFAULT NULL")
+  private String imageBase64;
 
   @Column(columnDefinition = "BIGINT DEFAULT NULL")
   @Min(1)
