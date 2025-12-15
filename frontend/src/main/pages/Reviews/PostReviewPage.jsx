@@ -28,14 +28,12 @@ export default function PostReviewPage() {
 
   const submitReview = async (formData) => {
     try {
-      await axios.post("/api/reviews/post", null, {
-        params: {
-          itemId: id,
-          reviewerComments: formData.reviewerComments,
-          itemsStars: formData.itemsStars,
-          dateItemServed: formData.dateItemServed,
-          imageBase64: formData.imageBase64,
-        },
+      await axios.post("/api/reviews/post", {
+        itemId: id,
+        reviewerComments: formData.reviewerComments,
+        itemsStars: formData.itemsStars,
+        dateItemServed: formData.dateItemServed,
+        imageBase64: formData.imageBase64,
       });
       // Stryker disable next-line all : itemName will be defined
       toast(`Review submitted for ${itemName}`);

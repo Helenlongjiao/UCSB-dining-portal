@@ -6,6 +6,7 @@ import edu.ucsb.cs156.dining.entities.Review;
 import edu.ucsb.cs156.dining.entities.ReviewVote;
 import edu.ucsb.cs156.dining.entities.User;
 import edu.ucsb.cs156.dining.errors.EntityNotFoundException;
+import edu.ucsb.cs156.dining.models.CreateReviewParams;
 import edu.ucsb.cs156.dining.models.CurrentUser;
 import edu.ucsb.cs156.dining.models.EditedReview;
 import edu.ucsb.cs156.dining.repositories.MenuItemRepository;
@@ -22,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** This is a REST controller for Reviews */
@@ -118,56 +117,40 @@ public class ReviewController extends ApiController {
    * This method allows a user to submit a review
    *
    * @return message that says an review was added to the database
-   * @param itemId id of the item
-   * @param dateItemServed localDataTime All others params must not be parameters and instead
-   *     derived from data sources that are dynamic (Date), or set to be null or some other
-   *     signifier
-   * @param imageBase64 the base64 encoded image string
+   * @param createReviewParams the parameters for creating a review
    */
   @Operation(summary = "Create a new review")
   @PreAuthorize("hasRole('ROLE_USER')")
   @PostMapping("/post")
-  public Review postReview(
-      @Parameter(name = "itemId") @RequestParam long itemId,
-      @Parameter(description = "Comments by the reviewer, can be blank")
-          @RequestParam(required = false)
-          String reviewerComments,
-      @Parameter(name = "itemsStars") @RequestParam Long itemsStars,
-      @Parameter(
-              name = "dateItemServed",
-              description =
-                  "date (in iso format, e.g. YYYY-mm-ddTHH:MM:SS; see https://en.wikipedia.org/wiki/ISO_8601)")
-          @RequestParam("dateItemServed")
-          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          LocalDateTime dateItemServed,
-      @Parameter(description = "Base64 encoded image string, can be blank")
-          @RequestParam(required = false)
-          String imageBase64)
+  public Review postReview(@RequestBody @Valid CreateReviewParams createReviewParams)
       throws JsonProcessingException {
     LocalDateTime now = LocalDateTime.now();
     Review review = new Review();
-    review.setDateItemServed(dateItemServed);
+    review.setDateItemServed(createReviewParams.getDateItemServed());
 
     // Ensures content of truly empty and sets to null if so
-    if (reviewerComments != null && !reviewerComments.trim().isEmpty()) {
-      review.setReviewerComments(reviewerComments);
+    if (createReviewParams.getReviewerComments() != null
+        && !createReviewParams.getReviewerComments().trim().isEmpty()) {
+      review.setReviewerComments(createReviewParams.getReviewerComments());
     }
 
-    if (imageBase64 != null && !imageBase64.trim().isEmpty()) {
-      review.setImageBase64(imageBase64);
+    if (createReviewParams.getImageBase64() != null
+        && !createReviewParams.getImageBase64().trim().isEmpty()) {
+      review.setImageBase64(createReviewParams.getImageBase64());
     }
 
     // Ensure user inputs rating 1-5
-    if (itemsStars < 1 || itemsStars > 5) {
+    if (createReviewParams.getItemsStars() < 1 || createReviewParams.getItemsStars() > 5) {
       throw new IllegalArgumentException("Items stars must be between 1 and 5.");
     }
 
-    review.setItemsStars(itemsStars);
+    review.setItemsStars(createReviewParams.getItemsStars());
 
     MenuItem reviewedItem =
         menuItemRepository
-            .findById(itemId)
-            .orElseThrow(() -> new EntityNotFoundException(MenuItem.class, itemId));
+            .findById(createReviewParams.getItemId())
+            .orElseThrow(
+                () -> new EntityNotFoundException(MenuItem.class, createReviewParams.getItemId()));
 
     if (review.getReviewerComments() == null) {
       review.setStatus(ModerationStatus.APPROVED);
