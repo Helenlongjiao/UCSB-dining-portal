@@ -5,6 +5,7 @@ import AdminUsersPage from "main/pages/AdminUsersPage";
 
 import ReviewsPage from "main/pages/Reviews/ReviewsPage";
 
+import ReviewsIndexPage from "main/pages/Reviews/ReviewsIndexPage";
 import MyReviewsIndexPage from "main/pages/MyReviews/MyReviewsIndexPage";
 import PostReviewPage from "main/pages/Reviews/PostReviewPage";
 
@@ -34,6 +35,7 @@ function App() {
         )}
         {hasRole(currentUser, "ROLE_USER") && (
           <>
+            <Route exact path="/reviews" element={<ReviewsIndexPage />} />
             <Route exact path="/myreviews" element={<MyReviewsIndexPage />} />
             <Route
               exact
