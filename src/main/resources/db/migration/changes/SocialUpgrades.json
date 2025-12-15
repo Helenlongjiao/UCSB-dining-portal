@@ -1,0 +1,138 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "SocialUpgrades-1",
+        "author": "System",
+        "changes": [
+          {
+            "addColumn": {
+              "tableName": "REVIEWS",
+              "columns": [
+                {
+                  "column": {
+                    "name": "IMAGE_BASE64",
+                    "type": "TEXT"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "SocialUpgrades-2",
+        "author": "System",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "REVIEW_VOTES",
+              "columns": [
+                {
+                  "column": {
+                    "name": "ID",
+                    "type": "BIGINT",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "primaryKeyName": "REVIEW_VOTES_PK"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "USER_ID",
+                    "type": "BIGINT",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "FK_REVIEW_VOTES_USER_ID",
+                      "referencedTableName": "USERS",
+                      "referencedColumnName": "ID"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "REVIEW_ID",
+                    "type": "BIGINT",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "FK_REVIEW_VOTES_REVIEW_ID",
+                      "referencedTableName": "REVIEWS",
+                      "referencedColumnName": "ID"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "TIMESTAMP",
+                    "type": "TIMESTAMP"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "SocialUpgrades-3",
+        "author": "System",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "USER_FAVORITES",
+              "columns": [
+                {
+                  "column": {
+                    "name": "ID",
+                    "type": "BIGINT",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "primaryKeyName": "USER_FAVORITES_PK"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "USER_ID",
+                    "type": "BIGINT",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "FK_USER_FAVORITES_USER_ID",
+                      "referencedTableName": "USERS",
+                      "referencedColumnName": "ID"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "DINING_COMMONS_CODE",
+                    "type": "VARCHAR(255)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "MENU_ITEM_NAME",
+                    "type": "VARCHAR(255)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "CREATED_DATE",
+                    "type": "TIMESTAMP"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
