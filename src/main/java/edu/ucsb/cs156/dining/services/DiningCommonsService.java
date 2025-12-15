@@ -51,13 +51,51 @@ public class DiningCommonsService {
     headers.set("ucsb-api-key", this.apiKey);
 
     HttpEntity<String> entity = new HttpEntity<>(headers);
-    ResponseEntity<String> re =
-        restTemplate.exchange(ENDPOINT, HttpMethod.GET, entity, String.class);
 
-    String retBody = re.getBody();
-    List<DiningCommons> commons =
-        mapper.readValue(retBody, new TypeReference<List<DiningCommons>>() {});
+    try {
+      ResponseEntity<String> re =
+          restTemplate.exchange(ENDPOINT, HttpMethod.GET, entity, String.class);
 
-    return commons;
+      String retBody = re.getBody();
+      List<DiningCommons> commons =
+          mapper.readValue(retBody, new TypeReference<List<DiningCommons>>() {});
+
+      return commons;
+    } catch (Exception e) {
+      log.error("Failed to fetch dining commons from UCSB API, returning mock data", e);
+      return getMockDiningCommons();
+    }
+  }
+
+  public List<DiningCommons> getMockDiningCommons() {
+    return List.of(
+        DiningCommons.builder()
+            .name("Carrillo")
+            .code("carrillo")
+            .hasDiningCam(true)
+            .hasSackMeal(false)
+            .hasTakeOutMeal(false)
+            .build(),
+        DiningCommons.builder()
+            .name("De La Guerra")
+            .code("de-la-guerra")
+            .hasDiningCam(false)
+            .hasSackMeal(false)
+            .hasTakeOutMeal(false)
+            .build(),
+        DiningCommons.builder()
+            .name("Ortega")
+            .code("ortega")
+            .hasDiningCam(true)
+            .hasSackMeal(false)
+            .hasTakeOutMeal(true)
+            .build(),
+        DiningCommons.builder()
+            .name("Portola")
+            .code("portola")
+            .hasDiningCam(true)
+            .hasSackMeal(false)
+            .hasTakeOutMeal(false)
+            .build());
   }
 }
